@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
 from numba import jit
+import json
 
 
 @jit(nopython=True, parallel=True)
@@ -71,6 +72,12 @@ def isAlpha(s):
         return False
 
 
+def saveData(data, filename):
+    '''Saves data in a json file'''
+    with open(filename, 'w') as f:
+        json.dump(data, f)
+
+
 def main():
     print("\nWelcome to the quadrature distribution data generator!\n")
     v1, v2 = -8, 8
@@ -79,10 +86,11 @@ def main():
         if voltage == "":
             break
         elif voltage.count(',') == 1:
-            v1, v2 = voltage.split(',')
-            if isAngle(v1) and isAngle(v2):
-                v1 = float(v1)
-                v2 = float(v2)
+            v1I, v2I = voltage.split(',')
+            print(v1I, v2I)
+            if isVoltage(v1I) and isVoltage(v2I) and (v1I:=float(v1I)) < (v2I:=float(v2I)):
+                v1 = v1I
+                v2 = v2I
                 break
             else:
                 print("Invalid voltage range")
@@ -109,33 +117,47 @@ def main():
 
     phi = np.linspace(0, 2*np.pi, 100)
     if mode == "1":
+        name = "vacuum"
         mus = np.zeros_like(phi)
         sig = np.zeros_like(phi)+(1/np.sqrt(2))
-        m, x = gen(mus, sig, v1=v1, v2=v2)
+        pr, x = gen(mus, sig, v1=v1, v2=v2)
 
     elif mode == "2":
+        name = "coherent"
         sig = np.zeros_like(phi)+(1/np.sqrt(2))
         mus = np.sin(phi)*alpha
-        m, x = gen(mus, sig, v1=v1, v2=v2)
+        pr, x = gen(mus, sig, v1=v1, v2=v2)
 
     elif mode == "3":
+        name = "thermal"
         mus = np.zeros_like(phi)
         sig = np.zeros_like(phi)+3
-        m, x = gen(mus, sig, v1=v1, v2=v2)
+        pr, x = gen(mus, sig, v1=v1, v2=v2)
 
     elif mode == "4":
+        name = "squeezed"
         eta = 2*np.pi/4
         sig = ((np.sin(2*(phi+(eta)))+1)*0.5 *
                (1/np.sqrt(2)))+(1/np.sqrt(2)) - 0.25
         mus = (np.sin(phi)+np.cos(phi))*alpha
-        m, x = gen(mus, sig, v1=v1, v2=v2)
+        pr, x = gen(mus, sig, v1=v1, v2=v2)
+
+    data = {"state": name,
+            "voltage range": f"{v1},{v2}",
+            "phi": phi.tolist(),
+            "x": x.tolist(),
+            "pr": pr.tolist()
+            }
+    saveData(data, name+".json")
+
+    print("\nThe data has been generated and saved to the current directory\n")
 
     view = input("If you want to see the generated data, enter 'y': ")
     if view == "y":
         fig = plt.figure()
         ax = fig.add_subplot(111, projection='3d')
         for i in range(np.size(phi)-1, 0, -1):
-            ax.plot(x, np.zeros_like(x)+phi[i], m[i, :], c='mediumvioletred')
+            ax.plot(x, np.zeros_like(x)+phi[i], pr[i, :], c='mediumvioletred')
         ax.set_ylabel(r"$\phi$")
         ax.set_xlabel(r"$x(v)$")
         ax.set_zlabel(r"$pr(x,\phi)$")
