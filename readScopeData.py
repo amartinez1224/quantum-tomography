@@ -153,12 +153,23 @@ def main():
     data = loadData(fileNames)
     m, x, param = gen(data, v1=v1, v2=v2)
 
-    n = np.linspace(angle1, angle2, np.size(m[:, 0]))
+    phi = np.linspace(angle1, angle2, np.size(m[:, 0]))
+    
+    data = {
+        "voltage range": f"{v1},{v2}",
+        "angle range": f"{angle1},{angle2}",
+        "phi": phi.tolist(),
+        "x": x.tolist(),
+        "pr": m.tolist()
+        }
+    saveData(data, "projections_from_scope.json")
+
+    print("\nThe data has been generated and saved to the current directory\n")
 
     # Plot
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
-    X, Y = np.meshgrid(x, n)
+    X, Y = np.meshgrid(x, phi)
     ax.set_ylabel(r"$Piezo(\mu m)$")
     ax.set_zlabel(r"$P_{\theta}$")
     ax.plot_surface(X, Y, m, rstride=1, cstride=1,
