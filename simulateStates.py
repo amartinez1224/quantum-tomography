@@ -88,7 +88,7 @@ def main():
         elif voltage.count(',') == 1:
             v1I, v2I = voltage.split(',')
             print(v1I, v2I)
-            if isVoltage(v1I) and isVoltage(v2I) and (v1I:=float(v1I)) < (v2I:=float(v2I)):
+            if isVoltage(v1I) and isVoltage(v2I) and (v1I := float(v1I)) < (v2I := float(v2I)):
                 v1 = v1I
                 v2 = v2I
                 break
@@ -148,7 +148,7 @@ def main():
             "x": x.tolist(),
             "pr": pr.tolist()
             }
-    saveData(data, name+".json")
+    saveData(data, "simulated_"+name+".json")
 
     print("\nThe data has been generated and saved to the current directory\n")
 
