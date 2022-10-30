@@ -67,7 +67,7 @@ def loadData(fileNames):
 def saveData(data, filename):
     '''Saves data in a json file'''
     with open(filename, 'w') as f:
-        json.dump(data, f)
+        json.dump(data, f, indent=4)
 
 
 def isVoltage(s):
@@ -154,14 +154,14 @@ def main():
     m, x, param = gen(data, v1=v1, v2=v2)
 
     phi = np.linspace(angle1, angle2, np.size(m[:, 0]))
-    
+
     data = {
         "voltage range": f"{v1},{v2}",
         "angle range": f"{angle1},{angle2}",
         "phi": phi.tolist(),
         "x": x.tolist(),
         "pr": m.tolist()
-        }
+    }
     saveData(data, "projections_from_scope.json")
 
     print("\nThe data has been generated and saved to the current directory\n")
