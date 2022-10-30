@@ -22,7 +22,7 @@ q1C, q2C, p1C, p2C, densityC, kcC = -5, 5, -5, 5, 50, 5
 color, angle1, angle2 = 'cividis', 45, 45
 t = None
 buttonQQ, buttonNM, buttonSave = None, None, None
-fileName, change = "SampleStates/simulated_vacuum.json", False
+fileName, change = "SampleStates/sim_vacuum.json", False
 
 
 class Counter:
