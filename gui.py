@@ -25,7 +25,7 @@ q1C,q2C,p1C,p2C,densityC,kcC=-5,5,-5,5,50,5
 color,angle1,angle2='cividis',45,45
 t = None
 buttonQQ,buttonNM=None,None
-file1,file2,file3,change="SampleStates/rhoVac.dat","SampleStates/phiVac.dat","SampleStates/xVac.dat",False
+fileName,change="SampleStates/simulated_vacuum.json",False
 
 class counter:
     def __init__(self):
@@ -116,9 +116,9 @@ def check():
     '''
 
 def data():
-    global Q,P,W,m,angles,volt,contador,file1,file2,file3, change
+    global Q,P,W,m,angles,volt,contador,fileName, change
     if np.size(m)<1  or np.size(angles)<1 or np.size(volt)<1 or change:
-        m,angles,volt=tomo.loadData(file1,file2,file3)
+        m,angles,volt=tomo.loadData(fileName)
         change=False
     generateButton["state"] ='disabled'
     contador.started()
@@ -126,33 +126,14 @@ def data():
     contador.ended()
     generateButton["state"] ='normal'
 
-def changeData1():
-    file =  tk.filedialog.askopenfilename(initialdir = os.path.abspath(""),title = "Load data m",filetypes = (("Data files","*.dat"),("all files","*.*")))
+def changeData():
+    file =  tk.filedialog.askopenfilename(initialdir = os.path.abspath(""),title = "Load data",filetypes = (("Json files","*.json"),("all files","*.*")))
     if file == "":
         tk.messagebox.showinfo('Error','The file does not exist!')
-    global file1, change
-    file1 = file
+    global fileName, change
+    fileName = file
     change=True
-    txtFile1.set(file1.split("/")[-1])
-
-def changeData2():
-    file =  tk.filedialog.askopenfilename(initialdir = os.path.abspath(""),title = "Load data phi",filetypes = (("Data files","*.dat"),("all files","*.*")))
-    if file == "":
-        tk.messagebox.showinfo('Error','The file does not exist!')
-    global file2, change
-    file2 = file
-    change=True
-    txtFile2.set(file2.split("/")[-1])
-
-def changeData3():
-    file =  tk.filedialog.askopenfilename(initialdir = os.path.abspath(""),title = "Load data x",filetypes = (("Data files","*.dat"),("all files","*.*")))
-    if file == "":
-        tk.messagebox.showinfo('Error','The file does not exist!')
-    global file3, change
-    file3 = file
-    change=True
-    txtFile3.set(file3.split("/")[-1])
-
+    txtFile.set(fileName.split("/")[-1])
 
 def fmt(x, pos):
     a, b = '{:.0e}'.format(x).split('e')
@@ -376,21 +357,14 @@ if __name__ == "__main__":
     tk.Label(master = frame2, text = "Angle 2:").grid(row=11, column=0)
     tk.Label(master = frame2).grid(row=12, column=0)
     tk.Label(master = frame2).grid(row=12, column=1)
-    tk.Label(master = frame2, text = "Data x:").grid(row=13, column=0)
-    tk.Label(master = frame2, text = "Data phi:").grid(row=14, column=0)
-    tk.Label(master = frame2, text = "Data pr:").grid(row=15, column=0)
-    txtFile3 = tk.StringVar()
-    bFile3 = tk.Button(frame2, textvariable=txtFile3, command=changeData3)
-    txtFile3.set(file3.split("/")[-1])
-    bFile3.grid(row=13, column=1)
-    txtFile2 = tk.StringVar()
-    bFile2 = tk.Button(frame2, textvariable=txtFile2, command=changeData2)
-    txtFile2.set(file2.split("/")[-1])
-    bFile2.grid(row=14, column=1)
-    txtFile1 = tk.StringVar()
-    bFile1 = tk.Button(frame2, textvariable=txtFile1, command=changeData1)
-    txtFile1.set(file1.split("/")[-1])
-    bFile1.grid(row=15, column=1)
+    
+    tk.Label(master = frame2, text = "Data:").grid(row=15, column=0)
+
+    txtFile = tk.StringVar()
+    bFile = tk.Button(frame2, textvariable=txtFile, command=changeData)
+    txtFile.set(fileName.split("/")[-1])
+    bFile.grid(row=15, column=1)
+    
     tk.Label(master = frame2).grid(row=16, column=0)
     tk.Label(master = frame2).grid(row=16, column=1)
 

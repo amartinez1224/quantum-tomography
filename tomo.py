@@ -4,6 +4,7 @@ from queue import Queue
 from scipy import interpolate
 from scipy.special import gamma, factorial, hyp1f1, eval_hermite
 from scipy.optimize import curve_fit
+import json
 
 W = None
 rhonm = None
@@ -19,7 +20,7 @@ def gauss2d(t, amp, muX, muY, sigX, sigY, theta):
     f = amp*np.exp( - (a*((x-muX)**2) + 2*b*(x-muX)*(y-muY) + c*((y-muY)**2)))
     return f.ravel()
 
-def loadData(mf,nf,xf):
+def loadDataByte(mf,nf,xf):
     m = None
     n = None
     x = None
@@ -30,6 +31,11 @@ def loadData(mf,nf,xf):
     with open(mf, "rb") as f:
         m = (np.frombuffer(f.read(),'float64')).reshape((np.size(n),np.size(x)))
     return m,n,x
+
+def loadData(fileName):
+    with open(fileName, "r") as f:
+        data = json.load(f)
+        return np.array(data['pr'], dtype='float64'), np.array(data['phi'], dtype='float64'), np.array(data['x'], dtype='float64')
 
 def wigner(iq,ip,q,p,m,angles,volt,kc):
     int=0
