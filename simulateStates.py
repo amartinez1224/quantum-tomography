@@ -75,7 +75,16 @@ def isAlpha(s):
 def saveData(data, filename):
     '''Saves data in a json file'''
     with open(filename, 'w') as f:
-        json.dump(data, f)
+        json.dump(data, f, indent=4)
+
+
+def musForAngle(angle, phi, alpha):
+    '''Returns mus for a given angle'''
+    angle = np.deg2rad(angle)
+    a = np.cos(angle)
+    b = np.sin(angle)
+    value = a*np.cos(phi) - b*np.sin(phi)
+    return value*alpha
 
 
 def main():
@@ -98,11 +107,14 @@ def main():
             print("Invalid voltage range")
 
     print(f'Voltage range set to {v1} to {v2} V\n')
+
     print("Now, please select the state to simulate")
     while (mode := input("Choose state (1: Vacuum, 2: Coherent, 3: Thermal, 4: Squeezed): ")) not in ["1", "2", "3", "4"]:
         print("Invalid mode")
     print(f'State {mode} selected\n')
+
     alpha = 3
+    angle = 0
     if mode == "2" or mode == "4":
         print("Now, please enter the alpha value")
         while (alphaI := input("Choose alpha (0-10) (default 3): ")):
@@ -115,40 +127,94 @@ def main():
                 print("Invalid alpha")
         print(f'Alpha set to {alpha}\n')
 
+        print("Now, please enter the angle value")
+
+        while (angleI := input("Choose angle in degrees (default 0°): ")):
+            if angleI == "":
+                break
+            elif isAngle(angleI):
+                angle = float(angleI)
+                break
+            else:
+                print("Invalid angle option")
+
+    eta = 0
+    if mode == "4":
+        print("Now, please enter the eta value (squeezing direction)")
+        while (etaI := input("Choose eta in degrees (default 0°): ")):
+            if etaI == "":
+                break
+            elif isAngle(etaI):
+                eta = float(etaI)
+                break
+            else:
+                print("Invalid eta option")
+
+    data = {}
+
     phi = np.linspace(0, 2*np.pi, 100)
     if mode == "1":
-        name = "vacuum"
+        data["state"] = "vacuum"
+        name = f'sim_{data["state"]}'
         mus = np.zeros_like(phi)
         sig = np.zeros_like(phi)+(1/np.sqrt(2))
         pr, x = gen(mus, sig, v1=v1, v2=v2)
 
     elif mode == "2":
-        name = "coherent"
+        data["state"] = "coherent"
+        data["alpha"] = alpha
+        data["angle"] = angle
+        name = f'sim_{data["state"]}_{alpha}_{angle}'
         sig = np.zeros_like(phi)+(1/np.sqrt(2))
-        mus = np.sin(phi)*alpha
+        mus = musForAngle(angle, phi, alpha)
         pr, x = gen(mus, sig, v1=v1, v2=v2)
 
     elif mode == "3":
-        name = "thermal"
+        data["state"] = "thermal"
+        name = f'sim_{data["state"]}'
         mus = np.zeros_like(phi)
         sig = np.zeros_like(phi)+3
         pr, x = gen(mus, sig, v1=v1, v2=v2)
 
     elif mode == "4":
-        name = "squeezed"
-        eta = 2*np.pi/4
-        sig = ((np.sin(2*(phi+(eta)))+1)*0.5 *
+        data["state"] = "squeezed"
+        data["alpha"] = alpha
+        data["angle"] = angle
+        data["eta"] = eta
+        name = f'sim_{data["state"]}_{alpha}_{angle}_{eta}'
+        sig = ((np.sin(2*(phi+(np.deg2rad(eta))))+1)*0.5 *
                (1/np.sqrt(2)))+(1/np.sqrt(2)) - 0.25
-        mus = (np.sin(phi)+np.cos(phi))*alpha
+        mus = musForAngle(angle, phi, alpha)
         pr, x = gen(mus, sig, v1=v1, v2=v2)
 
-    data = {"state": name,
-            "voltage range": f"{v1},{v2}",
-            "phi": phi.tolist(),
-            "x": x.tolist(),
-            "pr": pr.tolist()
-            }
-    saveData(data, "simulated_"+name+".json")
+    name = name.replace('.', '-')+".json"
+    data.update({
+        "voltage_range": [v1,v2],
+        "phi": phi.tolist(),
+        "x": x.tolist(),
+        "pr": pr.tolist()
+    })
+    
+    print("Data generated successfully!")
+    print("Please select a filename to save the data (if the file already exists, it will be overwritten)")
+    
+    while (filename := input(f"Enter filename (default {name}): ")):
+        if filename == "":
+            break
+        elif filename.count('.') == 1:
+            name, ext = filename.split('.')
+            if ext == "json":
+                if name == "":
+                    print("Invalid filename")
+                else:
+                    name = filename
+                    break
+            else:
+                print("Invalid file extension (use .json)")
+        else:
+            print("Invalid file name (use .json and no additional dots)")
+    
+    saveData(data, name)
 
     print("\nThe data has been generated and saved to the current directory\n")
 
