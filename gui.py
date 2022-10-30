@@ -1,36 +1,31 @@
 import tomo
 
+import os
+from json import dump
 import numpy as np
 from threading import Thread
 
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import (
     FigureCanvasTkAgg, NavigationToolbar2Tk)
-from matplotlib.backend_bases import key_press_handler
-import matplotlib.animation as animation
-from matplotlib import style
-from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.colors as colors
 import matplotlib.cm as cm
 import matplotlib.ticker as ticker
 
 import tkinter as tk
 from tkinter import ttk
-from tkinter import messagebox
-from PIL import ImageTk, Image
 
-import os
 
 Q, P, W, m, angles, volt = np.empty(0), np.empty(
     0), np.empty(0), np.empty(0), np.empty(0), np.empty(0)
 q1C, q2C, p1C, p2C, densityC, kcC = -5, 5, -5, 5, 50, 5
 color, angle1, angle2 = 'cividis', 45, 45
 t = None
-buttonQQ, buttonNM = None, None
+buttonQQ, buttonNM, buttonSave = None, None, None
 fileName, change = "SampleStates/simulated_vacuum.json", False
 
 
-class counter:
+class Counter:
     def __init__(self):
         self.count = 0
         self.start = False
@@ -41,7 +36,7 @@ class counter:
 
     def set(self, x):
         self.count = x
-        
+
     def increase(self):
         self.count += 1
 
@@ -50,6 +45,11 @@ class counter:
 
     def ended(self):
         self.end = True
+
+    def reset(self):
+        self.count = 0
+        self.start = False
+        self.end = False
 
 
 class popupWindow(object):
@@ -88,7 +88,7 @@ class popupWindow(object):
             return False
 
 
-contador = counter()
+contador = Counter()
 
 
 def task():
@@ -97,7 +97,7 @@ def task():
         progress.set(contador.get()*100/(densityC*densityC))
         if contador.end:
             graficar()
-            contador = counter()
+            contador.reset()
             t = None
     win.after(200, task)
 
@@ -228,6 +228,31 @@ def argumentsMatrixQQ():
     changeState(False)
 
 
+def saveData():
+    changeState(True)
+    buttonSave["state"] = "disabled"
+    file = tk.filedialog.asksaveasfilename(initialfile=f'tom_{txtFile.get()}', initialdir=os.path.abspath(
+        ""), title="Save data", filetypes=(("Json files", "*.json"), ("all files", "*.*")))
+
+    if file:
+        global Q, P, W, q1C, q2C, p1C, p2C, densityC, kcC, fileName
+        data = {"file": txtFile.get(), "Q min": q1C, "Q max": q2C, "P min": p1C, "P max": p2C,
+                "density": densityC, "kc": kcC, "Q": Q.tolist(), "P": P.tolist(), "W": W.tolist()}
+        try:
+            with open(file, 'w') as f:
+                dump(data, f, indent=4)
+            tk.messagebox.showinfo(
+                'Success', 'The tomography data was saved successfully!')
+        except Exception as e:
+            tk.messagebox.showinfo(
+                'Error', f'The tomography data was not saved! {e}')
+    else:
+        tk.messagebox.showinfo('Error', 'The tomography data was not saved!')
+
+    buttonSave["state"] = "normal"
+    changeState(False)
+
+
 def densityMatrixNM(ni, mi):
     global W, Q, P
     rhopP, listPosP, listNegP, rhopQ, listPosQ, listNegQ = tomo.quadratureToRho(
@@ -320,8 +345,8 @@ def graficar():
     for widget in frame1.winfo_children():
         widget.destroy()
     b = bar(indetermine=True)
-    global Q, P, W, color, angle1, angle2, buttonQQ, buttonNM
-    fig = plt.figure()
+    global Q, P, W, color, angle1, angle2, buttonQQ, buttonNM, buttonSave
+    fig = plt.figure(dpi=150)
     ax = fig.add_subplot(111, projection='3d')
     X, Y = np.meshgrid(P, Q)
     ax.set_ylabel(r"$q$")
@@ -337,20 +362,25 @@ def graficar():
     ax.yaxis._axinfo["grid"]['color'] = (1, 1, 1, 0)
     ax.zaxis._axinfo["grid"]['color'] = (1, 1, 1, 0)
     # plt.savefig("number",dpi=300)
+    plt.subplots_adjust(left=0.05, bottom=0.05, right=0.95,
+                        top=0.95, wspace=0, hspace=0)
     plt.close()
-    Plot = FigureCanvasTkAgg(fig, master=frame1)
-    Plot.draw()
-    Plot.get_tk_widget().pack(side='top', fill='both', expand=1)
+    plot = FigureCanvasTkAgg(fig, master=frame1)
+    plot.draw()
+    plot.get_tk_widget().pack(side='top', fill='both', expand=True)
     b.destroy()
-    toolbar = NavigationToolbar2Tk(Plot, frame1)
+    toolbar = NavigationToolbar2Tk(plot, frame1)
     toolbar.children['!button2'].pack_forget()
     toolbar.children['!button3'].pack_forget()
+    buttonSave = tk.Button(
+        master=toolbar, text="Save data", command=saveData)
     buttonQQ = tk.Button(
-        master=toolbar, text="Density Matrix quadrature", command=lambda: argumentsMatrixQQ())
+        master=toolbar, text="Density Matrix quadrature", command=argumentsMatrixQQ)
     buttonNM = tk.Button(
-        master=toolbar, text="Density Matrix Fock", command=lambda: argumentsRhoNM())
+        master=toolbar, text="Density Matrix Fock", command=argumentsRhoNM)
     buttonNM.pack(side="right")
     buttonQQ.pack(side="right")
+    buttonSave.pack(side="right")
     toolbar.update()
 
 
@@ -376,7 +406,7 @@ def bar(indetermine=False):
 
 
 if __name__ == "__main__":
-
+    # ctypes.windll.shcore.SetProcessDpiAwareness(1) Windows only
     win = tk.Tk()
     win.geometry('1125x900')
     win.title('Quantum Tomography')
@@ -409,12 +439,12 @@ if __name__ == "__main__":
     tk.Label(master=frame2).grid(row=12, column=0)
     tk.Label(master=frame2).grid(row=12, column=1)
 
-    tk.Label(master=frame2, text="Data:").grid(row=15, column=0)
+    tk.Label(master=frame2, text="Data:").grid(row=14, column=0)
 
     txtFile = tk.StringVar()
     bFile = tk.Button(frame2, textvariable=txtFile, command=changeData)
     txtFile.set(fileName.split("/")[-1])
-    bFile.grid(row=15, column=1)
+    bFile.grid(row=15, column=0, columnspan=2)
 
     tk.Label(master=frame2).grid(row=16, column=0)
     tk.Label(master=frame2).grid(row=16, column=1)
