@@ -7,6 +7,7 @@ import json
 
 
 def gauss2d(t, amp, muX, muY, sigX, sigY, theta):
+    '''2D Gaussian function.'''
     x, y = t
     a = (np.cos(theta)**2)/(2*sigX**2) + (np.sin(theta)**2)/(2*sigY**2)
     b = -(np.sin(2*theta))/(4*sigX**2) + (np.sin(2*theta))/(4*sigY**2)
@@ -16,6 +17,7 @@ def gauss2d(t, amp, muX, muY, sigX, sigY, theta):
 
 
 def loadDataByte(mf, nf, xf):
+    '''Load the data from a bytes file and return the data as a numpy arrays.'''
     m = None
     n = None
     x = None
@@ -30,6 +32,7 @@ def loadDataByte(mf, nf, xf):
 
 
 def loadData(fileName):
+    '''Load the data from a json file and return the data as a numpy arrays.'''
     with open(fileName, "r") as f:
         data = json.load(f)
         try:
@@ -39,6 +42,7 @@ def loadData(fileName):
 
 
 def wigner(args):
+    '''Calculate the element Wigner[iq,pq]. This function is used in the multiprocessing pool.'''
     iq, ip, q, p, m, angles, volt, kc = args
     int = 0
     for angle in range(np.size(angles)):
@@ -50,17 +54,24 @@ def wigner(args):
 
 
 def K(arg, kc):
+    '''Taylor expansion of the kernel function. 5 terms are used. This function is used in the filtering process.'''
     return ((kc**2)/2.)*(1-((kc**2)*(arg**2)/4.)+((kc**4)*(arg**4)/72.)-((kc**6)*(arg**6)/2880.)+((kc**8)*(arg**8)/201600.))
 
 
 def Kor(arg, kc):
+    '''Kernel function. This function is used in the filtering process.'''
     return (np.cos(kc*arg) + kc*arg*np.sin(kc*arg) - 1)/(arg**2)
 
 
 def Kcomp(q, p, angle, volt, kc):
+    '''Filtering process. Argument of the kernel function < gamma then kernel is replaced by the Taylor expansion.'''
+    # Gamma value
     turn = 0.01
+    # Argument of the kernel function
     arg = (q*np.cos(angle)) + (p*np.sin(angle)) - volt
+    # Taylor expansion
     arg[np.abs(arg*kc) < turn] = K(arg[np.abs(arg*kc) < turn], kc)
+    # Kernel function
     arg[np.abs(arg*kc) >= turn] = Kor(arg[np.abs(arg*kc) >= turn], kc)
     return arg
 
@@ -90,6 +101,7 @@ def quadratureToRho(w, q, p):
 
 
 def quadratureToFock(n, m, rho, x, xp):
+    '''Calculate the Fock matrix element <n|rho|m>. This function is used in the multiprocessing pool.'''
     integral = []
     for i in range(np.size(x)):
         int = rho[i, :]*np.exp(-0.5*((x[i]*x[i])+(xp*xp))) * \
@@ -99,8 +111,6 @@ def quadratureToFock(n, m, rho, x, xp):
     integral = np.sum(np.abs(x[1:]-x[:-1])*(integral[1:]+integral[:-1])/2)
     return integral / \
         (np.sqrt(np.pi*(2**m)*(2**n)*factorial(n)*factorial(m)))
-
-# Interpolate rho qq usig cubic splines
 
 
 def rhoInterpolate(rho, q, qp, qmax, qmin, density=100):
@@ -137,7 +147,7 @@ def rhoFitting(rho, q, qp, qmax, qmin, density=100):
 
 
 def rhoFock(rho, x, xp, n=20, m=20):
-
+    '''Generate the Fock matrix representation of rho. Multiprocessing is used to speed up the process.'''
     queRho = []
     na = np.arange(n)
     ma = np.arange(m)
@@ -153,6 +163,7 @@ def rhoFock(rho, x, xp, n=20, m=20):
 
 
 def tomo(m, angles, volt, progress, q1=-1, q2=1, p1=-1, p2=1, density=100, kc=2):
+    '''Perform a tomography using the given parameters. Multiprocessing is used to speed up the process.'''
     que = []
     Q = np.linspace(q1, q2, density)
     P = np.linspace(p1, p2, density)
@@ -172,7 +183,10 @@ def tomo(m, angles, volt, progress, q1=-1, q2=1, p1=-1, p2=1, density=100, kc=2)
     return Q, P, W
 
 
+# ---------- The code below is to obtain the density matrix from the density matrix in the Fock representation (not fully tested) -----------
+
 def comb(n, k):
+    '''Calculate the combination of n and k.'''
     return factorial(n)/(factorial(k)*factorial(n-k))
 
 
