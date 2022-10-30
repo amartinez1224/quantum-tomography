@@ -1,15 +1,9 @@
 import numpy as np
-from threading import Thread, Lock
-from queue import Queue
+from multiprocessing import Pool, cpu_count
 from scipy import interpolate
 from scipy.special import gamma, factorial, hyp1f1, eval_hermite
 from scipy.optimize import curve_fit
 import json
-
-W = None
-rhonm = None
-progressVar = None
-count = 0
 
 
 def gauss2d(t, amp, muX, muY, sigX, sigY, theta):
@@ -44,14 +38,14 @@ def loadData(fileName):
             raise
 
 
-def wigner(iq, ip, q, p, m, angles, volt, kc):
+def wigner(args):
+    iq, ip, q, p, m, angles, volt, kc = args
     int = 0
-    global W
     for angle in range(np.size(angles)):
         convolution = np.sum(
             m[angle, :] * Kcomp(q, p, angles[angle], volt, kc))
         int = int + convolution
-    W[iq, ip] = int*np.abs(angles[1]-angles[0]) * \
+    return iq, ip, int*np.abs(angles[1]-angles[0]) * \
         np.abs(volt[1]-volt[0])/(2*np.pi*np.pi)
 
 
@@ -69,42 +63,6 @@ def Kcomp(q, p, angle, volt, kc):
     arg[np.abs(arg*kc) < turn] = K(arg[np.abs(arg*kc) < turn], kc)
     arg[np.abs(arg*kc) >= turn] = Kor(arg[np.abs(arg*kc) >= turn], kc)
     return arg
-
-
-que = Queue()
-queRho = Queue()
-lock = Lock()
-
-
-def upadateBar():
-    global progressVar, count, norm
-    with lock:
-        count += 1
-        progressVar.set(count)
-
-
-def worker():
-    while True:
-        item = que.get()
-        wigner(*item)
-        upadateBar()
-        que.task_done()
-
-
-def workerRho():
-    while True:
-        item = queRho.get()
-        quadratureToFock(*item)
-        queRho.task_done()
-
-
-for i in range(4):
-    t = Thread(target=worker)
-    t.daemon = True
-    t.start()
-    t = Thread(target=workerRho)
-    t.daemon = True
-    t.start()
 
 
 def quadratureToRho(w, q, p):
@@ -133,14 +91,13 @@ def quadratureToRho(w, q, p):
 
 def quadratureToFock(n, m, rho, x, xp):
     integral = []
-    global rhoNM
     for i in range(np.size(x)):
         int = rho[i, :]*np.exp(-0.5*((x[i]*x[i])+(xp*xp))) * \
             eval_hermite(n, x[i])*eval_hermite(m, xp)
         integral.append(np.sum(np.abs(xp[1:]-xp[:-1])*(int[1:]+int[:-1])/2))
     integral = np.array(integral)
     integral = np.sum(np.abs(x[1:]-x[:-1])*(integral[1:]+integral[:-1])/2)
-    rhoNM[n][m] = integral / \
+    return integral / \
         (np.sqrt(np.pi*(2**m)*(2**n)*factorial(n)*factorial(m)))
 
 # Interpolate rho qq usig cubic splines
@@ -180,28 +137,38 @@ def rhoFitting(rho, q, qp, qmax, qmin, density=100):
 
 
 def rhoFock(rho, x, xp, n=20, m=20):
-    global rhoNM
-    rhoNM = np.empty((n, m))
-    n = np.arange(n)
-    m = np.arange(m)
-    for i in n:
-        for j in m:
-            queRho.put((i, j, rho, x, xp))
-    queRho.join()
-    return rhoNM, n, m
+
+    queRho = []
+    na = np.arange(n)
+    ma = np.arange(m)
+
+    for i in na:
+        for j in ma:
+            queRho.append((i, j, rho, x, xp))
+
+    with Pool(cpu_count()//2) as p:
+        rhoNM = np.array(p.starmap(quadratureToFock, queRho)).reshape(((n, m)))
+
+    return rhoNM, na, ma
 
 
-def tomo(m, angles, volt, prog, q1=-1, q2=1, p1=-1, p2=1, density=100, kc=2):
-    global W, progressVar, count
+def tomo(m, angles, volt, progress, q1=-1, q2=1, p1=-1, p2=1, density=100, kc=2):
+    que = []
     Q = np.linspace(q1, q2, density)
     P = np.linspace(p1, p2, density)
-    W = np.zeros((np.size(Q), np.size(P)))
-    progressVar = prog
-    count = 0
+    W = np.empty((density, density), dtype='float64')
+
     for q in range(density):
         for p in range(density):
-            que.put((q, p, Q[q], P[p], m, angles, volt, kc))
-    que.join()
+            que.append((q, p, Q[q], P[p], m, angles, volt, kc))
+
+    with Pool(cpu_count()-1) as p:
+        results = p.imap_unordered(wigner, que)
+
+        for iq, ip, w in results:
+            W[iq, ip] = w
+            progress.increase()
+
     return Q, P, W
 
 
@@ -253,9 +220,6 @@ def rho(n_i, m_i, matriz, angles, volt):
             d = m-n
             rho[n, m] = rhoElement(n, d, matriz, angles, volt)
     return rho
-
-
-n = np.linspace(-5, 5, 100)
 
 
 def gauss(x, amp, mu, sig):

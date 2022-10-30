@@ -41,6 +41,9 @@ class counter:
 
     def set(self, x):
         self.count = x
+        
+    def increase(self):
+        self.count += 1
 
     def started(self):
         self.start = True
