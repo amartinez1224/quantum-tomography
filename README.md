@@ -8,8 +8,8 @@ These functionalities are presented in a user-friendly graphical interface and t
 ## Installation
 ### Install using binary files
 You can use the installers for your system to easily install the software. 
-- **MacOS (Ventura 13.0):** 
-- **Windows:** Cooming soon
+- **[MacOS (Ventura 13.0)](https://github.com/amartinez1224/quantum-tomography/releases/download/v2.0/QuantumTomography.app.zip)**
+- **Windows** (Cooming soon)
 
 ### Clone repo
 You can also directly clone the repo and run the *gui.py* file.
