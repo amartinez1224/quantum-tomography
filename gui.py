@@ -15,6 +15,8 @@ import matplotlib.ticker as ticker
 import tkinter as tk
 from tkinter import ttk
 
+from multiprocessing import freeze_support
+
 
 Q, P, W, m, angles, volt = np.empty(0), np.empty(
     0), np.empty(0), np.empty(0), np.empty(0), np.empty(0)
@@ -407,6 +409,8 @@ def bar(indetermine=False):
 
 if __name__ == "__main__":
     # ctypes.windll.shcore.SetProcessDpiAwareness(1) Windows only
+    freeze_support() # Windows only
+    
     win = tk.Tk()
     win.geometry('1125x900')
     win.title('Quantum Tomography')
