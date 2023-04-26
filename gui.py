@@ -238,8 +238,8 @@ def saveData():
 
     if file:
         global Q, P, W, q1C, q2C, p1C, p2C, densityC, kcC, fileName
-        data = {"file": txtFile.get(), "Q min": q1C, "Q max": q2C, "P min": p1C, "P max": p2C,
-                "density": densityC, "kc": kcC, "Q": Q.tolist(), "P": P.tolist(), "W": W.tolist()}
+        data = {"file": txtFile.get(), "X min": q1C, "X max": q2C, "Y min": p1C, "Y max": p2C,
+                "density": densityC, "kc": kcC, "X": Q.tolist(), "Y": P.tolist(), "W": W.tolist()}
         try:
             with open(file, 'w') as f:
                 dump(data, f, indent=4)
@@ -276,14 +276,14 @@ def plotDensityMatrixQQ(Xp, Yp, Zp, Xq, Yq, Zq):
     ax = axes[0]
     h = ax.contour(Xp, Yp, Zp, levels=l, norm=colors.LogNorm(
         vmin=1/1000000., vmax=1), cmap='Blues')
-    ax.set_xlabel(r'$p$')
-    ax.set_ylabel(r'$p^\prime$')
+    ax.set_xlabel(r'$x$')
+    ax.set_ylabel(r'$x^\prime$')
     ax.set_aspect('equal')
     ax = axes[1]
     ax.contour(Xq, Yq, Zq, levels=l, norm=colors.LogNorm(
         vmin=1/1000000., vmax=1), cmap='Blues')
-    ax.set_xlabel(r'$q$')
-    ax.set_ylabel(r'$q^\prime$')
+    ax.set_xlabel(r'$y$')
+    ax.set_ylabel(r'$y^\prime$')
     ax.set_aspect('equal')
     fig.colorbar(h, ax=axes.ravel().tolist(), format=ticker.FuncFormatter(fmt))
     # plt.savefig("rhoQPVac.png",dpi=300)
@@ -351,9 +351,9 @@ def graficar():
     fig = plt.figure(dpi=150)
     ax = fig.add_subplot(111, projection='3d')
     X, Y = np.meshgrid(P, Q)
-    ax.set_ylabel(r"$q$")
-    ax.set_xlabel(r"$p$")
-    ax.set_zlabel(r"$W(q,p)$")
+    ax.set_ylabel(r"$x$")
+    ax.set_xlabel(r"$y$")
+    ax.set_zlabel(r"$W(x,y)$")
     ax.view_init(elev=angle1, azim=angle2)
     h = ax.plot_surface(X, Y, W, rstride=1, cstride=1,
                         cmap=color, edgecolor='none')
@@ -425,10 +425,10 @@ if __name__ == "__main__":
     tk.Label(master=frame2).grid(row=0, column=0)
     tk.Label(master=frame2).grid(row=0, column=1)
 
-    tk.Label(master=frame2, text="Q min:").grid(row=1, column=0)
-    tk.Label(master=frame2, text="Q max:").grid(row=2, column=0)
-    tk.Label(master=frame2, text="P min:").grid(row=3, column=0)
-    tk.Label(master=frame2, text="P max:").grid(row=4, column=0)
+    tk.Label(master=frame2, text="X min:").grid(row=1, column=0)
+    tk.Label(master=frame2, text="X max:").grid(row=2, column=0)
+    tk.Label(master=frame2, text="Y min:").grid(row=3, column=0)
+    tk.Label(master=frame2, text="Y max:").grid(row=4, column=0)
     tk.Label(master=frame2, text="Density:").grid(row=5, column=0)
     tk.Label(master=frame2, text="Kc:").grid(row=6, column=0)
     generateButton = tk.Button(frame2, text='Tomography', command=check)
