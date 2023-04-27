@@ -12,7 +12,7 @@ You can use the installers for your system to easily install the software.
 - **Windows** (Cooming soon)
 
 ### Clone repo
-You can also directly clone the repo and run the *gui.py* file.
+You can also directly clone the repo and run the `gui.py` file (works in Windows and MacOS).
 ```
 $ git clone https://github.com/amartinez1224/quantum-tomography.git
 $ cd quantum-tomography
@@ -20,12 +20,34 @@ $ pip3 install -r requirements.txt
 $ python3 gui.py
 ```
 
+### Use a virtual environment (optional)
+It's common practice to use a virtual environment to run Python applications. Virtual environments allow you to use an specific Python version (or the same one as the OS) and install specific versions of libraries that match those required by  the application without creating version conflicts with the global libraries in your OS. You can find more information on virtual environments [here](https://docs.python.org/3/library/venv.html).
+
+To create a virtual environment using *venv* run
+```
+$ python3 -m venv DIR_OF_NEW_ENV
+```
+To run the `gui.py` file on the *venv* run
+```
+$ git clone https://github.com/amartinez1224/quantum-tomography.git
+$ cd quantum-tomography
+$ source DIR_OF_NEW_ENV/bin/activate
+$ pip3 install -r requirements.txt
+$ python3 gui.py
+```
+
+To exit the *venv* run
+```
+deactivate
+```
+
+
 ## Usage
 To perform a tomography, select an input file using the button in the lower right corner. Then click on the *Tomography* button. 
 
 To tune the tomography, use the values on the right and then regenerate the tomography by clicking on the *Tomography* button:
-- Q min, Q max: set the range of the Q axis.
-- P min, P max: set the range of the P axis.
+- X min, X max: set the range of the X axis.
+- Y min, Y max: set the range of the Y axis.
 - Density: changes the amount of points generated for the Wigner function. The size of the generated Wigner function function is *density*\**density*.
 - Kc: the value for the cutoff frequency.
 
@@ -84,3 +106,9 @@ Data taken from a scope can be processed with the help of the `readScopeData.py`
 
 ## Wigner functions online gallery
 Coming soon
+
+## Documents
+You can find the monograph that lead to this development [here](https://github.com/amartinez1224/quantum-tomography/blob/567bfe7e2c01903786542dab36ff7c925361e157/docs/monograph.pdf).
+### Lab guides
+- [Lab guide 1](https://github.com/amartinez1224/quantum-tomography/blob/567bfe7e2c01903786542dab36ff7c925361e157/docs/Lab_guide_1.pdf)
+- [Lab guide 2](https://github.com/amartinez1224/quantum-tomography/blob/567bfe7e2c01903786542dab36ff7c925361e157/docs/Lab_guide_2.pdf)
