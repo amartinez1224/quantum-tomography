@@ -86,6 +86,55 @@ def musForAngle(angle, phi, alpha):
     value = a*np.cos(phi) - b*np.sin(phi)
     return value*alpha
 
+def generateData(mode, v1, v2, alpha, angle, eta):
+    data = {}
+    name=""
+
+    phi = np.linspace(0, 2*np.pi, 100)
+    if mode == "1":
+        data["state"] = "vacuum"
+        name = f'sim_{data["state"]}'
+        mus = np.zeros_like(phi)
+        sig = np.zeros_like(phi)+(1/np.sqrt(2))
+        pr, x = gen(mus, sig, v1=v1, v2=v2)
+
+    elif mode == "2":
+        data["state"] = "coherent"
+        data["alpha"] = alpha
+        data["angle"] = angle
+        name = f'sim_{data["state"]}_{alpha}_{angle}'
+        sig = np.zeros_like(phi)+(1/np.sqrt(2))
+        mus = musForAngle(angle, phi, alpha)
+        pr, x = gen(mus, sig, v1=v1, v2=v2)
+
+    elif mode == "3":
+        data["state"] = "thermal"
+        name = f'sim_{data["state"]}'
+        mus = np.zeros_like(phi)
+        sig = np.zeros_like(phi)+3
+        pr, x = gen(mus, sig, v1=v1, v2=v2)
+
+    elif mode == "4":
+        data["state"] = "squeezed"
+        data["alpha"] = alpha
+        data["angle"] = angle
+        data["eta"] = eta
+        name = f'sim_{data["state"]}_{alpha}_{angle}_{eta}'
+        sig = ((np.sin(2*(phi+(np.deg2rad(eta))))+1)*0.5 *
+               (1/np.sqrt(2)))+(1/np.sqrt(2)) - 0.25
+        mus = musForAngle(angle, phi, alpha)
+        pr, x = gen(mus, sig, v1=v1, v2=v2)
+
+    name = name.replace('.', '-')+".json"
+    data.update({
+        "voltage_range": [v1,v2],
+        "phi": phi.tolist(),
+        "x": x.tolist(),
+        "pr": pr.tolist()
+    })
+    
+    return data, name, phi, pr, x 
+
 
 def main():
     print("\nWelcome to the quadrature distribution data generator!\n")
@@ -150,50 +199,7 @@ def main():
             else:
                 print("Invalid eta option")
 
-    data = {}
-
-    phi = np.linspace(0, 2*np.pi, 100)
-    if mode == "1":
-        data["state"] = "vacuum"
-        name = f'sim_{data["state"]}'
-        mus = np.zeros_like(phi)
-        sig = np.zeros_like(phi)+(1/np.sqrt(2))
-        pr, x = gen(mus, sig, v1=v1, v2=v2)
-
-    elif mode == "2":
-        data["state"] = "coherent"
-        data["alpha"] = alpha
-        data["angle"] = angle
-        name = f'sim_{data["state"]}_{alpha}_{angle}'
-        sig = np.zeros_like(phi)+(1/np.sqrt(2))
-        mus = musForAngle(angle, phi, alpha)
-        pr, x = gen(mus, sig, v1=v1, v2=v2)
-
-    elif mode == "3":
-        data["state"] = "thermal"
-        name = f'sim_{data["state"]}'
-        mus = np.zeros_like(phi)
-        sig = np.zeros_like(phi)+3
-        pr, x = gen(mus, sig, v1=v1, v2=v2)
-
-    elif mode == "4":
-        data["state"] = "squeezed"
-        data["alpha"] = alpha
-        data["angle"] = angle
-        data["eta"] = eta
-        name = f'sim_{data["state"]}_{alpha}_{angle}_{eta}'
-        sig = ((np.sin(2*(phi+(np.deg2rad(eta))))+1)*0.5 *
-               (1/np.sqrt(2)))+(1/np.sqrt(2)) - 0.25
-        mus = musForAngle(angle, phi, alpha)
-        pr, x = gen(mus, sig, v1=v1, v2=v2)
-
-    name = name.replace('.', '-')+".json"
-    data.update({
-        "voltage_range": [v1,v2],
-        "phi": phi.tolist(),
-        "x": x.tolist(),
-        "pr": pr.tolist()
-    })
+    data, name, phi, pr, x = generateData(mode, v1, v2, alpha, angle, eta)
     
     print("Data generated successfully!")
     print("Please select a filename to save the data (if the file already exists, it will be overwritten)")
