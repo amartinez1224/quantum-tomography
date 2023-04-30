@@ -419,6 +419,17 @@ def bar(indetermine=False):
 
     return loadingBar
 
+def visualizeSimulatedData(pr,phi,x):
+    fig = plt.figure(num="Simulated data", dpi=200, figsize=(4, 3))
+    ax = fig.add_subplot(111, projection='3d')
+    for i in range(np.size(phi)-1, 0, -1):
+        ax.plot(x, np.zeros_like(x)+phi[i], pr[i, :], c='mediumvioletred')
+    ax.set_ylabel(r"$\phi$")
+    ax.set_xlabel(r"$x(v)$")
+    ax.set_zlabel(r"$pr(x,\phi)$")
+    ax.view_init(elev=0, azim=0)
+    plt.show()
+
 def dataSimulator():
     vminV, vmaxV, stateV, alphaV, angleV, etaV = -8, 8, 'squeezed', 3, 0, 0
     changeState(True)
@@ -521,8 +532,13 @@ def dataSimulator():
                 tk.messagebox.showinfo("Success", "Simulated data generated and saved successfully")
             except Exception as e:
                 tk.messagebox.showerror("Error", str(e))
+                window.destroy()
+                return
             finally:
                 file.close()
+            answer = tk.messagebox.askyesno("Simulate data", "Do you want to visualize the data?")
+            if answer:
+                visualizeSimulatedData(pr,phi,x)
             window.destroy()
         else:
             tk.messagebox.showerror("Error", "File not saved")
