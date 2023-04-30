@@ -1,4 +1,5 @@
 import tomo
+import simulateStates
 
 import os
 from json import dump
@@ -418,6 +419,121 @@ def bar(indetermine=False):
 
     return loadingBar
 
+def dataSimulator():
+    vminV, vmaxV, stateV, alphaV, angleV, etaV = -8, 8, 'squeezed', 3, 0, 0
+    changeState(True)
+    window = tk.Toplevel(win)
+    window.geometry('440x280')
+    window.title('Data simulation')
+    window.config(cursor="arrow")
+    frame = tk.Frame(window)
+    frame.place(relwidth=1, relheight=1)
+    
+    isAngle = window.register(lambda x: True if x=='' else simulateStates.isAngle(x))
+    isAlpha = window.register(lambda x: True if x=='' else simulateStates.isAlpha(x))
+    
+    tk.Label(master=frame, text="This tool allows you to simulate quadrature measurements as if they were performed in the lab", wraplength=410, justify='left').grid(row=0, column=0, columnspan=3, padx=10, pady=10, sticky='w')
+    
+    tk.Label(master=frame, text="Voltage range (in volts):").grid(row=1, column=0, padx=10, pady=5, sticky='e')
+    vmin = tk.DoubleVar()
+    vmin.set(vminV)
+    minVoltageEntry = tk.Spinbox(master=frame, from_=-120, to=120, increment=0.1, textvariable=vmin, width=8)
+    minVoltageEntry.grid(row=1, column=1, padx=10, sticky='e')
+    vmax = tk.DoubleVar()
+    vmax.set(vmaxV)
+    maxVoltageEntry = tk.Spinbox(master=frame, from_=-120, to=120, increment=0.1, textvariable=vmax, width=8)
+    maxVoltageEntry.grid(row=1, column=2, padx=10, sticky='w')
+    
+    def minVoltage(x):
+        if x == '' or x == '-':
+            return True
+        try:
+            if simulateStates.isVoltage and float(x) < vmax.get():
+                return True
+        except:
+            return False
+        return False
+    
+    def maxVoltage(x):
+        if x == '' or x == '-':
+            return True
+        try:
+            if simulateStates.isVoltage and float(x) > vmin.get():
+                return True
+        except:
+            return False
+        return False
+    
+    isMinVoltage = window.register(minVoltage)
+    isMaxVoltage = window.register(maxVoltage)
+    
+    minVoltageEntry.config(validate="key", validatecommand=(isMinVoltage, '%P'))
+    maxVoltageEntry.config(validate="key", validatecommand=(isMaxVoltage, '%P'))
+    
+    tk.Label(master=frame, text="Alpha (0-10):").grid(row=3, column=0, padx=10, pady=5, sticky='e')
+    alpha = tk.DoubleVar()
+    alpha.set(alphaV)
+    alphaEntry = tk.Spinbox(master=frame, from_=0, to=10, increment=0.1, textvariable=alpha, width=8)
+    alphaEntry.grid(row=3, column=1, columnspan=2, padx=10, sticky='ew')
+    alphaEntry.config(validate="key", validatecommand=(isAlpha, '%P'))
+    
+    tk.Label(master=frame, text=u"Angle (in \u00B0):").grid(row=4, column=0, padx=10, pady=5, sticky='e')
+    angle = tk.DoubleVar()
+    angle.set(angleV)
+    angleEntry = tk.Spinbox(master=frame, from_=0, to=360, increment=1, textvariable=angle, width=8)
+    angleEntry.grid(row=4, column=1, columnspan=2, padx=10, sticky='ew')
+    angleEntry.config(validate="key", validatecommand=(isAngle, '%P'))
+        
+    tk.Label(master=frame, text=u"Squeezing direction (\u03b7 in \u00B0):").grid(row=5, column=0, padx=10, pady=5, sticky='e')
+    eta = tk.DoubleVar()
+    eta.set(etaV)
+    etaEntry = tk.Spinbox(master=frame, from_=0, to=10, increment=0.1, textvariable=eta, width=8)
+    etaEntry.grid(row=5, column=1, columnspan=2, padx=10, sticky='ew')
+    etaEntry.config(validate="key", validatecommand=(isAngle, '%P'))
+    
+    def setState(x):
+        state.set(x)
+        alphaEntry.config(state='disabled')
+        angleEntry.config(state='disabled')
+        etaEntry.config(state='disabled')
+        if (state.get() == 'coherent' or state.get() == 'squezeed'):
+            alphaEntry.config(state='normal')
+            angleEntry.config(state='normal')
+            if (state.get() == 'squezeed'):
+                etaEntry.config(state='normal')
+                
+    tk.Label(master=frame, text="State:").grid(row=2, column=0, padx=10, pady=5, sticky='e')
+    state = tk.StringVar()
+    op = ['vacuum', 'coherent', 'thermal', 'squeezed']
+    state.set(stateV)
+    menu = tk.OptionMenu(frame, state, *op, command=setState)
+    menu.config(width=8)
+    menu.grid(row=2, column=1, columnspan=2, padx=10, sticky='ew')
+    
+    simulateButton = None
+    def simulateData():
+        simulateButton.config(state='disabled')
+        data, name, phi, pr, x = simulateStates.generateData(str(op.index(state.get())+1),float(vmin.get()),float(vmax.get()),float(alpha.get()),float(angle.get()),float(eta.get()))
+        file = tk.filedialog.asksaveasfile(mode='w', defaultextension=".json", filetypes=[("Json","*.json")], initialfile=name)
+        if file:
+            try:
+                dump(data, file, indent=4)
+                tk.messagebox.showinfo("Success", "Simulated data generated and saved successfully")
+            except Exception as e:
+                tk.messagebox.showerror("Error", str(e))
+            finally:
+                file.close()
+            window.destroy()
+        else:
+            tk.messagebox.showerror("Error", "File not saved")
+            simulateButton.config(state='normal')
+            
+    simulateButton = tk.Button(master=frame, text="Simulate data", command=simulateData)
+    simulateButton.grid(row=6, column=0, columnspan=3, padx=10, pady=10, sticky='ew')
+        
+    window.wait_window()
+    changeState(False)
+     
 
 if __name__ == "__main__":
     # ctypes.windll.shcore.SetProcessDpiAwareness(1) Windows only
@@ -469,7 +585,7 @@ if __name__ == "__main__":
     tk.Label(master=frame2).grid(row=16, column=0)
     tk.Label(master=frame2).grid(row=16, column=1)
     
-    simulatorButton = tk.Button(frame2, text='Data simulator', command=None)
+    simulatorButton = tk.Button(frame2, text='Data simulator', command=dataSimulator)
     simulatorButton.grid(row=17, column=0, columnspan=2)
 
     tk.Label(master=frame2).grid(row=18, column=0)
