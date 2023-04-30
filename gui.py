@@ -146,11 +146,15 @@ def data():
             return
         change = False
     generateButton["state"] = 'disabled'
+    simulatorButton["state"] = 'disabled'
+    bFile["state"] = 'disabled'
     contador.started()
     Q, P, W = tomo.tomo(m, angles, volt, contador, q1=q1C,
                         q2=q2C, p1=p1C, p2=p2C, density=densityC, kc=kcC)
     contador.ended()
     generateButton["state"] = 'normal'
+    simulatorButton["state"] = 'normal'
+    bFile["state"] = 'normal'
 
 
 def changeData():
@@ -207,8 +211,12 @@ def changeState(dir):
         state -= 1
     if state == 0:
         generateButton["state"] = "normal"
+        simulatorButton["state"] = "normal"
+        bFile['state'] = "normal"
     else:
         generateButton["state"] = "disabled"
+        simulatorButton["state"] = "disabled"
+        bFile['state'] = "disabled"
 
 
 def argumentsRhoNM():
@@ -424,59 +432,72 @@ if __name__ == "__main__":
 
     tk.Label(master=frame2).grid(row=0, column=0)
     tk.Label(master=frame2).grid(row=0, column=1)
-
-    tk.Label(master=frame2, text="X min:").grid(row=1, column=0)
-    tk.Label(master=frame2, text="X max:").grid(row=2, column=0)
-    tk.Label(master=frame2, text="Y min:").grid(row=3, column=0)
-    tk.Label(master=frame2, text="Y max:").grid(row=4, column=0)
-    tk.Label(master=frame2, text="Density:").grid(row=5, column=0)
-    tk.Label(master=frame2, text="Kc:").grid(row=6, column=0)
-    generateButton = tk.Button(frame2, text='Tomography', command=check)
-    generateButton.grid(row=7, column=1)
-
-    tk.Label(master=frame2).grid(row=8, column=0)
-    tk.Label(master=frame2).grid(row=8, column=1)
-
-    tk.Label(master=frame2, text="Color:").grid(row=9, column=0)
-    tk.Label(master=frame2, text="Angle 1:").grid(row=10, column=0)
-    tk.Label(master=frame2, text="Angle 2:").grid(row=11, column=0)
-    tk.Label(master=frame2).grid(row=12, column=0)
-    tk.Label(master=frame2).grid(row=12, column=1)
-
-    tk.Label(master=frame2, text="Data:").grid(row=14, column=0)
+    
+    tk.Label(master=frame2, text="Select data:").grid(row=1, column=0)
 
     txtFile = tk.StringVar()
     bFile = tk.Button(frame2, textvariable=txtFile, command=changeData)
     txtFile.set(fileName.split("/")[-1])
-    bFile.grid(row=15, column=0, columnspan=2)
+    bFile.grid(row=2, column=0, columnspan=2)
+    
+    tk.Label(master=frame2).grid(row=3, column=0)
+    tk.Label(master=frame2).grid(row=3, column=1)
+    
+    tk.Label(master=frame2).grid(row=4, column=0)
+    tk.Label(master=frame2).grid(row=4, column=1)
 
+    tk.Label(master=frame2, text="X min:").grid(row=5, column=0)
+    tk.Label(master=frame2, text="X max:").grid(row=6, column=0)
+    tk.Label(master=frame2, text="Y min:").grid(row=7, column=0)
+    tk.Label(master=frame2, text="Y max:").grid(row=8, column=0)
+    tk.Label(master=frame2, text="Density:").grid(row=9, column=0)
+    tk.Label(master=frame2, text="Kc:").grid(row=10, column=0)
+    
+    generateButton = tk.Button(frame2, text='Tomography', command=check)
+    generateButton.grid(row=11, column=0, columnspan=2, sticky="nsew", padx=8, pady=5)
+
+    tk.Label(master=frame2).grid(row=12, column=0)
+    tk.Label(master=frame2).grid(row=12, column=1)
+
+    tk.Label(master=frame2, text="Color:").grid(row=13, column=0)
+    tk.Label(master=frame2, text="Angle 1:").grid(row=14, column=0)
+    tk.Label(master=frame2, text="Angle 2:").grid(row=15, column=0)
     tk.Label(master=frame2).grid(row=16, column=0)
     tk.Label(master=frame2).grid(row=16, column=1)
+    
+    simulatorButton = tk.Button(frame2, text='Data simulator', command=None)
+    simulatorButton.grid(row=17, column=0, columnspan=2)
+
+    tk.Label(master=frame2).grid(row=18, column=0)
+    tk.Label(master=frame2).grid(row=18, column=1)
+    
+    separator = ttk.Separator(frame2, orient='horizontal')
+    separator.grid(row=19, column=0, columnspan=2, sticky="ew")
 
     qmin = tk.DoubleVar()
     qmin.set(q1C)
     tk.Spinbox(frame2, from_=-1000000, to=1000000,
-               textvariable=qmin, width=8).grid(row=1, column=1)
+               textvariable=qmin, width=8).grid(row=5, column=1)
     qmax = tk.DoubleVar()
     qmax.set(q2C)
     tk.Spinbox(frame2, from_=-1000000, to=1000000,
-               textvariable=qmax, width=8).grid(row=2, column=1)
+               textvariable=qmax, width=8).grid(row=6, column=1)
     pmin = tk.DoubleVar()
     pmin.set(p1C)
     tk.Spinbox(frame2, from_=-1000000, to=1000000,
-               textvariable=pmin, width=8).grid(row=3, column=1)
+               textvariable=pmin, width=8).grid(row=7, column=1)
     pmax = tk.DoubleVar()
     pmax.set(p2C)
     tk.Spinbox(frame2, from_=-1000000, to=1000000,
-               textvariable=pmax, width=8).grid(row=4, column=1)
+               textvariable=pmax, width=8).grid(row=8, column=1)
     dense = tk.IntVar()
     dense.set(densityC)
     tk.Spinbox(frame2, from_=-1000000, to=1000000,
-               textvariable=dense, width=8).grid(row=5, column=1)
+               textvariable=dense, width=8).grid(row=9, column=1)
     cut = tk.DoubleVar()
     cut.set(kcC)
     tk.Spinbox(frame2, from_=-100, to=100, textvariable=cut,
-               width=8).grid(row=6, column=1)
+               width=8).grid(row=10, column=1)
 
     col = tk.StringVar()
     op = ['viridis', 'plasma', 'inferno', 'magma', 'cividis',
@@ -484,31 +505,31 @@ if __name__ == "__main__":
     col.set(color)
     menu = tk.OptionMenu(frame2, col, *op, command=styl)
     menu.config(width=8)
-    menu.grid(row=9, column=1)
+    menu.grid(row=13, column=1)
 
     a1 = tk.DoubleVar()
     a1.set(angle1)
     e = tk.Entry(frame2, textvariable=a1, width=8)
-    e.grid(row=10, column=1)
+    e.grid(row=14, column=1)
     e.bind("<FocusOut>", styl)
     e.bind("<Return>", styl)
 
     a2 = tk.DoubleVar()
     a2.set(angle2)
     e = tk.Entry(frame2, textvariable=a2, width=8)
-    e.grid(row=11, column=1)
+    e.grid(row=15, column=1)
     e.bind("<FocusOut>", styl)
     e.bind("<Return>", styl)
 
-    frame2.grid_rowconfigure(8, weight=1)
     frame2.grid_rowconfigure(12, weight=1)
+    frame2.grid_rowconfigure(16, weight=1)
     frame2.grid_columnconfigure(0, weight=1)
     frame2.grid_columnconfigure(1, weight=1)
 
     progress = tk.IntVar()
-    tk.Label(master=frame2, text="Progress %").grid(row=17, column=0)
+    tk.Label(master=frame2, text="Progress %").grid(row=20, column=0)
     pr = tk.Entry(frame2, textvariable=progress, width=8)
-    pr.grid(row=17, column=1)
+    pr.grid(row=20, column=1)
     pr.config(state=tk.DISABLED)
 
     win.after(1000, task)
