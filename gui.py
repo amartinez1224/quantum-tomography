@@ -223,11 +223,15 @@ def argumentsRhoNM():
     w = popupWindow(win)
     changeState(True)
     buttonNM["state"] = "disabled"
-    win.wait_window(w.top)
-    ni, mi = int(w.n), int(w.m)
-    densityMatrixNM(ni, mi)
-    buttonNM["state"] = "normal"
-    changeState(False)
+    try:
+        win.wait_window(w.top)
+        ni, mi = int(w.n), int(w.m)
+        densityMatrixNM(ni, mi)
+    except:
+        pass
+    finally:
+        buttonNM["state"] = "normal"
+        changeState(False)
 
 
 def argumentsMatrixQQ():
