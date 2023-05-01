@@ -7,41 +7,50 @@ These functionalities are presented in a user-friendly graphical interface and t
 
 # Installation
 
+## Install using binary files
+You can use the installers for your system to easily install the software. 
+- **[MacOS (Ventura 13.0 - Intel)](https://github.com/amartinez1224/quantum-tomography/releases/download/v3.0/QuantumTomography_MacOS_Intel.app.zip)**
+- **[MacOS (Ventura 13.0 - Silicon)](https://github.com/amartinez1224/quantum-tomography/releases/download/v3.0/QuantumTomography_MacOS_Silicon.app.zip)**
+- **[Windows](https://github.com/amartinez1224/quantum-tomography/releases/download/v3.0/QuantumTomography_Windows.zip)**
+
 ## Clone repo
-You can directly clone the repo and run the `gui.py` file (works in Windows, Linux and MacOS).
+As an alternative you can directly clone the repo and run the `gui.py` file (works in Windows, Linux and MacOS).
 ```
 $ git clone https://github.com/amartinez1224/quantum-tomography.git
 $ cd quantum-tomography
-$ pip3 install -r requirements.txt
-$ python3 gui.py
+$ pip install -r requirements.txt
+$ python gui.py
 ```
 
 ### Use a virtual environment (optional)
 It's common practice to use a virtual environment to run Python applications. Virtual environments allow you to use an specific Python version (or the same one as the OS) and install specific versions of libraries that match those required by the application without creating version conflicts with the global libraries in your OS. You can find more information on virtual environments [here](https://docs.python.org/3/library/venv.html).
 
-To create a virtual environment using *venv* run
-```
-$ python3 -m venv DIR_OF_NEW_ENV
-```
-To run the `gui.py` file on the *venv* run
+First clone the repo and navigate to the main folder
 ```
 $ git clone https://github.com/amartinez1224/quantum-tomography.git
 $ cd quantum-tomography
+```
+Once there create a virtual environment using *venv* run
+```
+$ python -m venv DIR_OF_NEW_ENV
+```
+Then activate the environment, install the requirements and run the `gui.py` file on the *venv*: (Mac)
+```
 $ source DIR_OF_NEW_ENV/bin/activate
-$ pip3 install -r requirements.txt
-$ python3 gui.py
+$ pip install -r requirements.txt
+$ python gui.py
+```
+Then activate the environment, install the requirements and run the `gui.py` file on the *venv*: (Windows)
+```
+$ .\DIR_OF_NEW_ENV\Scripts\activate
+$ python -m pip install -r requirements.txt
+$ python gui.py
 ```
 
 To exit the *venv* run
 ```
 deactivate
 ```
-
-### Install using binary files
-As an alternative you can use the installers for your system to easily install the software. 
-- **[MacOS (Ventura 13.0 - Intel only)](https://github.com/amartinez1224/quantum-tomography/releases/download/v2.0/QuantumTomography.app.zip)**
-- **More coming soon** 
-
 
 # Usage
 To perform a tomography, select an input file using the button in the lower right corner. Then click on the *Tomography* button. 
