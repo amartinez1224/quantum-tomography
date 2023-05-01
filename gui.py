@@ -507,10 +507,10 @@ def dataSimulator():
         alphaEntry.config(state='disabled')
         angleEntry.config(state='disabled')
         etaEntry.config(state='disabled')
-        if (state.get() == 'coherent' or state.get() == 'squezeed'):
+        if (state.get() == 'coherent' or state.get() == 'squeezed'):
             alphaEntry.config(state='normal')
             angleEntry.config(state='normal')
-            if (state.get() == 'squezeed'):
+            if (state.get() == 'squeezed'):
                 etaEntry.config(state='normal')
                 
     tk.Label(master=frame, text="State:").grid(row=2, column=0, padx=10, pady=5, sticky='e')
